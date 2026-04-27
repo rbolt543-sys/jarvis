@@ -1,0 +1,8 @@
+# Keep token out of GitHub
+deploy.sh
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
