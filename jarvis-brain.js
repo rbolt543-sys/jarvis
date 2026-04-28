@@ -213,16 +213,17 @@ const JARVIS = (() => {
 
   function _pickVoice() {
     if (!_voices.length) _voices = _synth.getVoices();
-    // Priority list — closest to Paul Bettany's JARVIS
+    // Priority list — targeting crisp British male closest to Paul Bettany's JARVIS
     const priority = [
-      v => v.name === 'Daniel',                                      // macOS/iOS British male — best match
+      v => v.name === 'Daniel (Enhanced)',                           // macOS enhanced — best quality
+      v => v.name === 'Daniel',                                      // macOS/iOS standard British male
       v => v.name === 'Google UK English Male',                      // Chrome British male
       v => v.name.includes('Daniel'),
-      v => v.lang === 'en-GB' && v.name.toLowerCase().includes('male'),
-      v => v.name === 'Alex',                                        // macOS fallback
-      v => v.name === 'Fred',
+      v => v.name === 'Arthur',                                      // newer macOS British male
+      v => v.name.includes('Arthur'),
+      v => v.lang === 'en-GB' && v.name.toLowerCase().includes('enhanced'),
       v => v.lang === 'en-GB',
-      v => v.lang.startsWith('en') && v.name.toLowerCase().includes('male'),
+      v => v.lang.startsWith('en-') && v.name.toLowerCase().includes('male'),
       v => v.lang.startsWith('en'),
     ];
     for (const test of priority) {
@@ -239,8 +240,8 @@ const JARVIS = (() => {
     const clean = text.replace(/[#*`]/g, '').slice(0, brief ? 120 : 800);
     const utt = new SpeechSynthesisUtterance(clean);
     utt.lang  = 'en-GB';
-    utt.rate  = brief ? 1.0 : 0.92;   // slightly slower = more authoritative
-    utt.pitch = 0.85;                  // lower pitch = closer to Bettany
+    utt.rate  = brief ? 1.05 : 0.97;  // crisp, not too slow
+    utt.pitch = 1.18;                  // higher pitch — Paul Bettany JARVIS register
 
     const voice = _pickVoice();
     if (voice) utt.voice = voice;
