@@ -58,8 +58,15 @@ const JARVIS_DATA = (() => {
   async function refresh() {
     const base = JARVIS_CONFIG.GOOGLE_SHEET_CSV_URL;
     if (!base) {
-      console.warn('JARVIS: No Google Sheet URL set in config.js');
-      _loadDemoData();
+      // Only show demo data if no manual leads exist
+      const manualLeads = _getManualLeads();
+      if (manualLeads.length === 0) _loadDemoData();
+      else {
+        _cache.leads    = [];
+        _cache.gigs     = _cache.gigs.length ? _cache.gigs : _demoGigs();
+        _cache.students = _cache.students.length ? _cache.students : _demoStudents();
+        _cache.lastFetch = new Date();
+      }
       return _cache;
     }
 
@@ -123,27 +130,33 @@ const JARVIS_DATA = (() => {
     return parseFloat(String(str).replace(/[^0-9.-]/g, '')) || 0;
   }
 
-  // ── Demo data (shown when no Sheet URL is set) ───────────────
+  // ── Demo data (shown when no Sheet URL and no manual leads) ──
+  function _demoGigs() {
+    return [
+      { name: 'Harrison Wedding',       date: '2026-05-10', type: 'Wedding',       fee: 2500, status: 'Confirmed', venue: 'The Biltmore Hotel',  notes: '' },
+      { name: 'TechConf Awards Night',  date: '2026-05-17', type: 'Corporate',     fee: 3200, status: 'Confirmed', venue: 'Convention Center',   notes: 'Rat Pack set' },
+      { name: 'Elton Tribute — Rialto', date: '2026-06-02', type: 'Tribute Show',  fee: 2000, status: 'Confirmed', venue: 'Rialto Theater',      notes: 'Full production' },
+      { name: 'Private Birthday',       date: '2026-06-14', type: 'Private Event', fee: 1800, status: 'Hold',      venue: 'Private Residence',   notes: 'Pending deposit' },
+    ];
+  }
+  function _demoStudents() {
+    return [
+      { name: 'Marcus Webb',  status: 'Active',   joined: '2026-03-01', module: 'Module 4 — Reharmonisation', email: '', source: 'Instagram' },
+      { name: 'Diana Chow',   status: 'Active',   joined: '2026-02-15', module: 'Module 6 — Performance',     email: '', source: 'YouTube' },
+      { name: 'Robert Palma', status: 'Stalled',  joined: '2026-01-10', module: 'Module 2 — Chord Voicing',   email: '', source: 'GigSalad referral' },
+      { name: 'Lena Fischer', status: 'Active',   joined: '2026-04-01', module: 'Module 1 — Foundations',     email: '', source: 'Instagram' },
+      { name: 'James Nguyen', status: 'Complete', joined: '2025-12-01', module: 'Complete ✓',                 email: '', source: 'Email list' },
+    ];
+  }
   function _loadDemoData() {
-    _cache.leads = [
-      { name: 'Sarah & Tom Mitchell', source: 'GigSalad',  status: 'Hot Lead',  date: '2026-04-22', value: 2800, notes: 'Wedding June 15, wants Elton tribute', email: '', phone: '' },
-      { name: 'Parkview Corp Events', source: 'BookLive',  status: 'Quoted',    date: '2026-04-20', value: 3500, notes: 'Corporate dinner for 120 pax', email: '', phone: '' },
-      { name: 'Jessica Reynolds',     source: 'Instagram', status: 'New',       date: '2026-04-25', value: 0,    notes: 'Interested in GOB course', email: '', phone: '' },
-      { name: 'Grand Hyatt Chicago',  source: 'Referral',  status: 'Negotiating', date: '2026-04-18', value: 4200, notes: 'New Year\'s Eve residency', email: '', phone: '' },
+    _cache.leads    = [
+      { name: 'Sarah & Tom Mitchell', source: 'GigSalad',  status: 'Hot Lead',    date: '2026-04-22', value: 2800, notes: 'Wedding June 15, wants Elton tribute', email: '', phone: '' },
+      { name: 'Parkview Corp Events', source: 'BookLive',  status: 'Quoted',      date: '2026-04-20', value: 3500, notes: 'Corporate dinner for 120 pax',          email: '', phone: '' },
+      { name: 'Jessica Reynolds',     source: 'Instagram', status: 'New',         date: '2026-04-25', value: 0,    notes: 'Interested in GOB course',               email: '', phone: '' },
+      { name: 'Grand Hyatt Chicago',  source: 'Referral',  status: 'Negotiating', date: '2026-04-18', value: 4200, notes: "New Year's Eve residency",               email: '', phone: '' },
     ];
-    _cache.gigs = [
-      { name: 'Harrison Wedding',      date: '2026-05-10', type: 'Wedding',         fee: 2500, status: 'Confirmed', venue: 'The Biltmore Hotel', notes: '' },
-      { name: 'TechConf Awards Night', date: '2026-05-17', type: 'Corporate',       fee: 3200, status: 'Confirmed', venue: 'Convention Center', notes: 'Rat Pack set' },
-      { name: 'Elton Tribute — Rialto',date: '2026-06-02', type: 'Tribute Show',    fee: 2000, status: 'Confirmed', venue: 'Rialto Theater', notes: 'Full production' },
-      { name: 'Private Birthday',      date: '2026-06-14', type: 'Private Event',   fee: 1800, status: 'Hold',      venue: 'Private Residence', notes: 'Pending deposit' },
-    ];
-    _cache.students = [
-      { name: 'Marcus Webb',   status: 'Active',   joined: '2026-03-01', module: 'Module 4 — Reharmonisation', email: '', source: 'Instagram' },
-      { name: 'Diana Chow',    status: 'Active',   joined: '2026-02-15', module: 'Module 6 — Performance',     email: '', source: 'YouTube' },
-      { name: 'Robert Palma',  status: 'Stalled',  joined: '2026-01-10', module: 'Module 2 — Chord Voicing',   email: '', source: 'GigSalad referral' },
-      { name: 'Lena Fischer',  status: 'Active',   joined: '2026-04-01', module: 'Module 1 — Foundations',     email: '', source: 'Instagram' },
-      { name: 'James Nguyen',  status: 'Complete', joined: '2025-12-01', module: 'Complete ✓',                email: '', source: 'Email list' },
-    ];
+    _cache.gigs     = _demoGigs();
+    _cache.students = _demoStudents();
     _cache.lastFetch = new Date();
   }
 
