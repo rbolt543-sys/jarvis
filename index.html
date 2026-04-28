@@ -359,6 +359,11 @@
     .gig-name      { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .gig-type      { font-size: 11px; color: var(--muted); }
     .gig-fee       { font-size: 14px; font-weight: 600; color: var(--success); flex-shrink: 0; }
+    .gig-right     { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .deposit-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 5px; border-radius: 3px; }
+    .deposit-badge--paid    { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+    .deposit-badge--partial { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .deposit-badge--owed    { background: rgba(231,76,60,0.12); color: #e74c3c; border: 1px solid rgba(231,76,60,0.25); }
 
     /* ── Revenue chart bar ────────────────────────────── */
     .rev-total {
@@ -741,9 +746,9 @@
     <div class="stat-sub" id="stat-pipeline">Pipeline loading…</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Gigs Confirmed</div>
+    <div class="stat-label">Gigs Booked</div>
     <div class="stat-value" id="stat-gigs">—</div>
-    <div class="stat-sub" id="stat-rev-month">Revenue this month</div>
+    <div class="stat-sub" id="stat-deposits">— deposits in</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">GOB Students</div>
@@ -753,7 +758,7 @@
   <div class="stat-card">
     <div class="stat-label">Total Revenue Booked</div>
     <div class="stat-value" id="stat-rev-total">—</div>
-    <div class="stat-sub">Confirmed gigs</div>
+    <div class="stat-sub" id="stat-rev-month">— this month</div>
   </div>
 </div>
 
@@ -1090,7 +1095,9 @@ function renderStats() {
   document.getElementById('stat-hot-leads').textContent  = s.hotLeads;
   document.getElementById('stat-pipeline').textContent   = `${fmt$(s.pipelineValue)} pipeline`;
   document.getElementById('stat-gigs').textContent       = s.confirmedGigs;
-  document.getElementById('stat-rev-month').textContent  = `${fmt$(s.revenueThisMonth)} this month`;
+  document.getElementById('stat-deposits').textContent   = fmt$(s.depositsCollected) + ' deposits in';
+  document.getElementById('stat-rev-total').textContent  = fmt$(s.revenueTotal);
+  document.getElementById('stat-rev-month').textContent  = fmt$(s.revenueThisMonth) + ' this month';
   document.getElementById('stat-students').textContent   = s.activeStudents;
   document.getElementById('stat-students-sub').textContent = `${s.totalStudents} total enrolled`;
   document.getElementById('stat-rev-total').textContent  = fmt$(s.revenueTotal);
@@ -1135,25 +1142,19 @@ function deleteLead(id) {
 
 // ── Gigs ──
 function renderGigs() {
+  const today = new Date().toISOString().slice(0, 10);
   const gigs = JARVIS_DATA.cache().gigs;
-  document.getElementById('gigs-badge').textContent = gigs.length;
+  const upcoming = [...gigs].filter(g => g.date >= today).sort((a,b) => a.date.localeCompare(b.date));
+  document.getElementById('gigs-badge').textContent = upcoming.length;
   const el = document.getElementById('gigs-list');
-  const sorted = [...gigs].sort((a,b) => a.date.localeCompare(b.date)).slice(0, 5);
-  el.innerHTML = sorted.map(g => {
+  el.innerHTML = upcoming.slice(0, 6).map(g => {
     const db = fmtDateBox(g.date);
-    return `
-      <div class="gig-row">
-        <div class="gig-date-box">
-          <div class="gig-date-day">${db.day}</div>
-          <div class="gig-date-mon">${db.mon}</div>
-        </div>
-        <div class="gig-info">
-          <div class="gig-name">${g.name}</div>
-          <div class="gig-type">${g.type}${g.venue ? ' · ' + g.venue : ''}</div>
-        </div>
-        <div class="gig-fee">${fmt$(g.fee)}</div>
-      </div>
-    `;
+    const paid = g.paid || 0;
+    let badge = '';
+    if (paid >= g.fee && g.fee > 0) badge = '<span class="deposit-badge deposit-badge--paid">Paid In Full</span>';
+    else if (paid > 0) badge = '<span class="deposit-badge deposit-badge--partial">Dep. ' + fmt$(paid) + '</span>';
+    else badge = '<span class="deposit-badge deposit-badge--owed">No Deposit</span>';
+    return '<div class="gig-row"><div class="gig-date-box"><div class="gig-date-day">' + db.day + '</div><div class="gig-date-mon">' + db.mon + '</div></div><div class="gig-info"><div class="gig-name">' + g.name + '</div><div class="gig-type">' + g.type + (g.venue ? ' · ' + g.venue : '') + '</div></div><div class="gig-right"><div class="gig-fee">' + fmt$(g.fee) + '</div>' + badge + '</div></div>';
   }).join('');
 }
 
