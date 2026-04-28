@@ -194,6 +194,61 @@ HOT LEADS:
 ${hotLeadsList || 'None'}`;
   }
 
-  return { refresh, getStats, getSummaryText, cache: () => _cache };
+  // ── Manual Leads (localStorage) ──────────────────────────────
+  const MANUAL_LEADS_KEY = 'jarvis_manual_leads_v1';
+
+  function _getManualLeads() {
+    try { return JSON.parse(localStorage.getItem(MANUAL_LEADS_KEY) || '[]'); }
+    catch(_) { return []; }
+  }
+
+  function addManualLead(lead) {
+    const leads = _getManualLeads();
+    lead._id     = 'ml_' + Date.now();
+    lead._manual = true;
+    lead._added  = new Date().toISOString();
+    leads.unshift(lead);
+    localStorage.setItem(MANUAL_LEADS_KEY, JSON.stringify(leads));
+    // Merge into cache immediately
+    _cache.leads = [...leads.map(_normManualLead), ..._cache.leads.filter(l => !l._manual)];
+  }
+
+  function deleteManualLead(id) {
+    const leads = _getManualLeads().filter(l => l._id !== id);
+    localStorage.setItem(MANUAL_LEADS_KEY, JSON.stringify(leads));
+    _cache.leads = _cache.leads.filter(l => l._id !== id);
+  }
+
+  function _normManualLead(l) {
+    return {
+      name:    l.name    || '',
+      source:  l.source  || '',
+      status:  l.status  || 'New',
+      type:    l.type    || '',
+      date:    l.date    || '',
+      value:   l.value   || 0,
+      notes:   l.notes   || '',
+      email:   l.email   || '',
+      phone:   l.phone   || '',
+      _manual: true,
+      _id:     l._id,
+    };
+  }
+
+  // Merge manual leads into cache after sheet refresh
+  function _mergeManualLeads() {
+    const manual = _getManualLeads().map(_normManualLead);
+    // Prepend manual leads (most recent first), sheet leads after
+    _cache.leads = [...manual, ..._cache.leads.filter(l => !l._manual)];
+  }
+
+  return {
+    refresh: async () => { await refresh(); _mergeManualLeads(); return _cache; },
+    getStats,
+    getSummaryText,
+    addManualLead,
+    deleteManualLead,
+    cache: () => _cache,
+  };
 
 })();
