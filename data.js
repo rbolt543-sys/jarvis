@@ -110,7 +110,8 @@ const JARVIS_DATA = (() => {
       name:    r.event   || r.gig        || r.name   || r.client || '',
       date:    r.date    || r.event_date  || r.gig_date || '',
       type:    r.type    || r.event_type  || r.category || '',
-      fee:     _parseMoney(r.fee || r.value || r.revenue || '0'),
+      fee:     _parseMoney(r.fee || r.total || r.value || r.revenue || '0'),
+      paid:    _parseMoney(r.paid || r.deposit || r.amount_paid || '0'),
       status:  r.status  || r.confirmed  || 'Confirmed',
       venue:   r.venue   || r.location   || '',
       notes:   r.notes   || '',
@@ -132,13 +133,23 @@ const JARVIS_DATA = (() => {
     return parseFloat(String(str).replace(/[^0-9.-]/g, '')) || 0;
   }
 
-  // ── Demo data (shown when no Sheet URL and no manual leads) ──
+    // ── Real gig data — scraped from BookLive April 2026 ────
   function _demoGigs() {
     return [
-      { name: 'Harrison Wedding',       date: '2026-05-10', type: 'Wedding',       fee: 2500, status: 'Confirmed', venue: 'The Biltmore Hotel',  notes: '' },
-      { name: 'TechConf Awards Night',  date: '2026-05-17', type: 'Corporate',     fee: 3200, status: 'Confirmed', venue: 'Convention Center',   notes: 'Rat Pack set' },
-      { name: 'Elton Tribute — Rialto', date: '2026-06-02', type: 'Tribute Show',  fee: 2000, status: 'Confirmed', venue: 'Rialto Theater',      notes: 'Full production' },
-      { name: 'Private Birthday',       date: '2026-06-14', type: 'Private Event', fee: 1800, status: 'Hold',      venue: 'Private Residence',   notes: 'Pending deposit' },
+      { name: 'Weekend Getaway Cocktail Party',                    date: '2026-05-02', type: 'Corporate',     fee: 1912, paid: 1912, status: 'Paid In Full',  venue: 'Blue Harbor Resort',                  notes: '' },
+      { name: 'A Special Tribute to Bunny',                        date: '2026-05-02', type: 'Private Event', fee: 750,  paid: 750,  status: 'Paid In Full',  venue: 'Three Pillars Senior Living',         notes: '' },
+      { name: 'Celebration of Life — Roger Bjerke',                date: '2026-05-05', type: 'Memorial',      fee: 750,  paid: 0,    status: 'Confirmed',     venue: 'Saint Marks EV Lutheran Church',      notes: '' },
+      { name: 'Celebration of Life — Dorothy Plehn',               date: '2026-05-09', type: 'Memorial',      fee: 1300, paid: 0,    status: 'Confirmed',     venue: 'Trinity Lutheran Church',             notes: '' },
+      { name: 'Glitter and Be Gay: Liberace, Elton & Friends',     date: '2026-05-16', type: 'Tribute Show',  fee: 4000, paid: 0,    status: 'Confirmed',     venue: 'OPE! Brewing Co.',                    notes: '' },
+      { name: 'Village at the Square Music',                        date: '2026-05-22', type: 'Senior Living', fee: 250,  paid: 0,    status: 'Confirmed',     venue: 'Three Pillars Village on the Square', notes: '' },
+      { name: "Sean's Wedding Extravaganza!!",                      date: '2026-06-06', type: 'Wedding',       fee: 5950, paid: 0,    status: 'Confirmed',     venue: 'Green Bay Distillery',                notes: '' },
+      { name: "Kayley & Sean's Beach Wedding Extravaganza",         date: '2026-06-13', type: 'Wedding',       fee: 1695, paid: 0,    status: 'Confirmed',     venue: 'Blue Harbor Resort',                  notes: '' },
+      { name: "Abby and Giovanni's Wedding Extravaganza!",          date: '2026-06-20', type: 'Wedding',       fee: 2882, paid: 0,    status: 'Confirmed',     venue: 'Beau Chateau',                        notes: '' },
+      { name: "Trek's 50th Anniversary MACC Fund Fundraiser",       date: '2026-06-20', type: 'Corporate',     fee: 4100, paid: 0,    status: 'Confirmed',     venue: '801 W Madison St',                    notes: '' },
+      { name: 'Elvis 4th of July Parade',                           date: '2026-07-04', type: 'Parade',        fee: 1695, paid: 350,  status: 'Deposit Paid',  venue: 'Greendale',                           notes: '' },
+      { name: "Laura & James' Wedding Extravaganza!",               date: '2026-08-08', type: 'Wedding',       fee: 4000, paid: 750,  status: 'Deposit Paid',  venue: '',                                    notes: '' },
+      { name: "McKenzie and Garrett's Wedding Cocktail Celebration",date: '2026-08-15', type: 'Wedding',       fee: 1370, paid: 0,    status: 'Confirmed',     venue: 'Barnwood Events Wisconsin',            notes: '' },
+      { name: "Alex and Matt's Amazing Wedding!",                   date: '2026-08-30', type: 'Wedding',       fee: 2294, paid: 0,    status: 'Confirmed',     venue: 'Klehm Arboretum & Botanic Garden',    notes: '' },
     ];
   }
   function _demoStudents() {
@@ -162,23 +173,27 @@ const JARVIS_DATA = (() => {
     _cache.lastFetch = new Date();
   }
 
-  // ── Quick stats for JARVIS context ───────────────────────────
+    // ── Quick stats for JARVIS context ───────────
   function getStats() {
     const now = new Date();
     const thisMonth = now.toISOString().slice(0, 7);
     const gigsThisMonth = _cache.gigs.filter(g => g.date.startsWith(thisMonth));
     const revenueThisMonth = gigsThisMonth.reduce((s, g) => s + g.fee, 0);
-    const revenueTotal = _cache.gigs.filter(g => g.status === 'Confirmed').reduce((s, g) => s + g.fee, 0);
+    const revenueTotal = _cache.gigs.reduce((s, g) => s + g.fee, 0);
+    const depositsCollected = _cache.gigs.reduce((s, g) => s + (g.paid || 0), 0);
+    const gigsWithDeposit = _cache.gigs.filter(g => (g.paid || 0) > 0);
     const hotLeads = _cache.leads.filter(l => ['Hot Lead', 'Quoted', 'Negotiating'].includes(l.status));
     return {
-      totalLeads:       _cache.leads.length,
-      hotLeads:         hotLeads.length,
-      pipelineValue:    hotLeads.reduce((s, l) => s + l.value, 0),
-      confirmedGigs:    _cache.gigs.filter(g => g.status === 'Confirmed').length,
+      totalLeads:        _cache.leads.length,
+      hotLeads:          hotLeads.length,
+      pipelineValue:     hotLeads.reduce((s, l) => s + l.value, 0),
+      confirmedGigs:     _cache.gigs.length,
+      gigsWithDeposit:   gigsWithDeposit.length,
+      depositsCollected,
       revenueThisMonth,
       revenueTotal,
-      activeStudents:   _cache.students.filter(s => s.status === 'Active').length,
-      totalStudents:    _cache.students.length,
+      activeStudents:    _cache.students.filter(s => s.status === 'Active').length,
+      totalStudents:     _cache.students.length,
     };
   }
 
