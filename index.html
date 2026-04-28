@@ -126,6 +126,58 @@
     }
     .btn-icon:hover { border-color: var(--gold); color: var(--gold); }
 
+    /* ── API Key Modal ────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(7,9,26,0.92);
+      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--card);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 440px; width: 90%;
+      box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    }
+    .modal-title {
+      font-family: var(--font-head);
+      font-size: 20px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold-bright); margin-bottom: 8px;
+    }
+    .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .modal-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 13px; font-family: var(--font-body);
+      outline: none; margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .modal-input:focus { border-color: rgba(201,168,76,0.5); }
+    .modal-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(240,192,64,0.15));
+      border: 1px solid rgba(201,168,76,0.4);
+      border-radius: 8px;
+      color: var(--gold-bright);
+      font-family: var(--font-head);
+      font-size: 15px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-btn:hover { background: rgba(201,168,76,0.3); box-shadow: 0 0 20px rgba(201,168,76,0.2); }
+    .modal-note { font-size: 11px; color: var(--muted); text-align: center; margin-top: 12px; }
+
     /* ── Hero (orb + stats bar) ───────────────────────── */
     .hero {
       position: relative;
@@ -581,6 +633,17 @@
 
 <body>
 
+<!-- ── API Key Modal ─────────────────────────────────── -->
+<div class="modal-overlay" id="key-modal">
+  <div class="modal">
+    <div class="modal-title">JARVIS Online</div>
+    <div class="modal-sub">Enter your Anthropic API key to activate the AI. It's stored only in your browser — never on GitHub or any server.</div>
+    <input class="modal-input" id="key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" />
+    <button class="modal-btn" onclick="saveApiKey()">Activate JARVIS</button>
+    <div class="modal-note">🔒 Stored locally in your browser. Never leaves your device.</div>
+  </div>
+</div>
+
 <!-- ── Header ──────────────────────────────────────────── -->
 <header>
   <div>
@@ -596,6 +659,7 @@
   <div class="header-actions">
     <button class="btn-icon" onclick="JARVIS_DATA.refresh().then(renderAll)">↻ Refresh</button>
     <button class="btn-icon" onclick="JARVIS.clearMemory()">⌫ Memory</button>
+    <button class="btn-icon" onclick="document.getElementById('key-modal').classList.add('active')" title="Change API key">🔑 Key</button>
   </div>
 </header>
 
@@ -1175,9 +1239,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ============================================================
+// API KEY MANAGEMENT (localStorage — never on GitHub)
+// ============================================================
+const KEY_STORAGE = 'jarvis_api_key_v1';
+
+function saveApiKey() {
+  const key = document.getElementById('key-input').value.trim();
+  if (!key || !key.startsWith('sk-ant-')) {
+    document.getElementById('key-input').style.borderColor = 'var(--danger)';
+    document.getElementById('key-input').placeholder = 'Must start with sk-ant-...';
+    return;
+  }
+  localStorage.setItem(KEY_STORAGE, key);
+  JARVIS_CONFIG.ANTHROPIC_API_KEY = key;
+  document.getElementById('key-modal').classList.remove('active');
+  JARVIS.log('API key saved. JARVIS fully operational.');
+}
+
+function loadApiKey() {
+  const stored = localStorage.getItem(KEY_STORAGE);
+  if (stored) {
+    JARVIS_CONFIG.ANTHROPIC_API_KEY = stored;
+    return true;
+  }
+  return false;
+}
+
+// Enter key submits modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('key-modal').classList.contains('active')) {
+    saveApiKey();
+  }
+});
+
+// ============================================================
 // BOOT SEQUENCE
 // ============================================================
 window.addEventListener('DOMContentLoaded', async () => {
+  // Load API key from localStorage
+  const hasKey = loadApiKey();
+  if (!hasKey) {
+    document.getElementById('key-modal').classList.add('active');
+    document.getElementById('key-input').focus();
+  }
+
   // Init JARVIS brain with orb controller
   JARVIS.init(window._orbController);
 
