@@ -55,10 +55,9 @@ const JARVIS_DATA = (() => {
   }
 
   // ── Main refresh ─────────────────────────────────────────────
-  async function refresh() {
+    async function refresh() {
     const base = JARVIS_CONFIG.GOOGLE_SHEET_CSV_URL;
     if (!base) {
-      // Only show demo data if no manual leads exist
       const manualLeads = _getManualLeads();
       if (manualLeads.length === 0) _loadDemoData();
       else {
@@ -69,23 +68,30 @@ const JARVIS_DATA = (() => {
       }
       return _cache;
     }
-
+    // Fetch each tab independently so leads work even without gigs/students tabs
     const tabs = JARVIS_CONFIG.SHEET_TABS;
     try {
-      const [leads, gigs, students] = await Promise.all([
-        fetchTab(tabURL(base, tabs.leads)),
-        fetchTab(tabURL(base, tabs.gigs)),
-        fetchTab(tabURL(base, tabs.students)),
-      ]);
-      _cache.leads    = _normLeads(leads);
-      _cache.gigs     = _normGigs(gigs);
-      _cache.students = _normStudents(students);
-      _cache.lastFetch = new Date();
-      console.log(`JARVIS Data: ${leads.length} leads, ${gigs.length} gigs, ${students.length} students`);
-    } catch (err) {
-      console.error('JARVIS Data fetch error:', err);
-      _loadDemoData();
-    }
+      if (tabs.leads) {
+        const rows = await fetchTab(tabURL(base, tabs.leads));
+        _cache.leads = _normLeads(rows);
+        console.log('JARVIS: ' + _cache.leads.length + ' leads from sheet');
+      }
+    } catch(e) { console.warn('Leads tab failed:', e.message); }
+    try {
+      if (tabs.gigs) {
+        const rows = await fetchTab(tabURL(base, tabs.gigs));
+        _cache.gigs = _normGigs(rows);
+      }
+    } catch(e) { console.warn('No gigs tab - using BookLive data'); }
+    if (!_cache.gigs.length) _cache.gigs = _demoGigs();
+    try {
+      if (tabs.students) {
+        const rows = await fetchTab(tabURL(base, tabs.students));
+        _cache.students = _normStudents(rows);
+      }
+    } catch(e) { console.warn('No students tab'); }
+    if (!_cache.students.length) _cache.students = _demoStudents();
+    _cache.lastFetch = new Date();
     return _cache;
   }
 
