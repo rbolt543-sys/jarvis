@@ -633,14 +633,78 @@
 
 <body>
 
-<!-- ── API Key Modal ─────────────────────────────────── -->
+<!-- ── Settings Modal ────────────────────────────────── -->
 <div class="modal-overlay" id="key-modal">
   <div class="modal">
-    <div class="modal-title">JARVIS Online</div>
-    <div class="modal-sub">Enter your Anthropic API key to activate the AI. It's stored only in your browser — never on GitHub or any server.</div>
+    <div class="modal-title">JARVIS Setup</div>
+    <div class="modal-sub">Stored only in your browser — never on GitHub or any server.</div>
+    <label style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Anthropic API Key</label>
     <input class="modal-input" id="key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" />
-    <button class="modal-btn" onclick="saveApiKey()">Activate JARVIS</button>
-    <div class="modal-note">🔒 Stored locally in your browser. Never leaves your device.</div>
+    <label style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;margin-top:4px;">Google Sheet CSV URL <span style="color:var(--muted);font-style:italic;">(optional — add later)</span></label>
+    <input class="modal-input" id="sheet-input" type="url" placeholder="https://docs.google.com/spreadsheets/d/..." autocomplete="off" />
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;">In your Sheet: File → Share → Publish to web → CSV → copy URL</div>
+    <button class="modal-btn" onclick="saveSettings()">Activate JARVIS</button>
+    <div class="modal-note">🔒 Keys stored locally in your browser only.</div>
+  </div>
+</div>
+
+<!-- ── Add Lead Modal ────────────────────────────────── -->
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">Add Lead</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Client / Name *</label>
+        <input class="modal-input" id="lead-name" placeholder="Sarah & Tom Mitchell" style="margin-bottom:0;" />
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Source</label>
+        <select class="modal-input" id="lead-source" style="margin-bottom:0;">
+          <option>GigSalad</option><option>BookLive</option><option>Instagram</option>
+          <option>Referral</option><option>Website</option><option>Phone</option>
+          <option>Email</option><option>Facebook</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Status</label>
+        <select class="modal-input" id="lead-status" style="margin-bottom:0;">
+          <option>New</option><option>Hot Lead</option><option>Quoted</option>
+          <option>Negotiating</option><option>Booked</option><option>Lost</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Event Type</label>
+        <select class="modal-input" id="lead-type" style="margin-bottom:0;">
+          <option>Wedding</option><option>Corporate</option><option>Tribute Show</option>
+          <option>Private Event</option><option>GOB Course</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Value ($)</label>
+        <input class="modal-input" id="lead-value" type="number" placeholder="2500" style="margin-bottom:0;" />
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Event Date</label>
+        <input class="modal-input" id="lead-date" type="date" style="margin-bottom:0;" />
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Phone</label>
+        <input class="modal-input" id="lead-phone" placeholder="+1 555 000 0000" style="margin-bottom:0;" />
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Email</label>
+        <input class="modal-input" id="lead-email" placeholder="client@email.com" style="margin-bottom:0;" />
+      </div>
+    </div>
+    <div style="margin:12px 0;">
+      <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;">Notes</label>
+      <input class="modal-input" id="lead-notes" placeholder="Wants Elton tribute, ceremony + reception..." style="margin-bottom:0;" />
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="modal-btn" onclick="saveNewLead()" style="flex:1;">Save Lead</button>
+      <button onclick="document.getElementById('lead-modal').classList.remove('active')"
+        style="flex:0 0 80px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:13px;">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -659,7 +723,7 @@
   <div class="header-actions">
     <button class="btn-icon" onclick="JARVIS_DATA.refresh().then(renderAll)">↻ Refresh</button>
     <button class="btn-icon" onclick="JARVIS.clearMemory()">⌫ Memory</button>
-    <button class="btn-icon" onclick="document.getElementById('key-modal').classList.add('active')" title="Change API key">🔑 Key</button>
+    <button class="btn-icon" onclick="openSettings()" title="Settings">⚙ Settings</button>
   </div>
 </header>
 
@@ -700,7 +764,11 @@
   <div class="card">
     <div class="card-header">
       <div class="card-title">Leads Pipeline</div>
-      <div class="card-badge" id="leads-badge">0</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="card-badge" id="leads-badge">0</div>
+        <button onclick="document.getElementById('lead-modal').classList.add('active')"
+          style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px;letter-spacing:1px;">+ Add</button>
+      </div>
     </div>
     <div class="card-body" id="leads-list">
       <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">Loading leads…</div>
@@ -1039,20 +1107,30 @@ function renderLeads() {
   const leads = JARVIS_DATA.cache().leads;
   document.getElementById('leads-badge').textContent = leads.length;
   const el = document.getElementById('leads-list');
-  if (!leads.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px 0;">No leads yet</div>'; return; }
-  el.innerHTML = leads.slice(0, 6).map(l => `
-    <div class="pipeline-item">
+  if (!leads.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px 0;">No leads — click + Add to start</div>';
+    return;
+  }
+  el.innerHTML = leads.slice(0, 8).map(l => `
+    <div class="pipeline-item" style="position:relative;">
       <div class="pipeline-avatar">${initials(l.name || '?')}</div>
       <div class="pipeline-info">
-        <div class="pipeline-name">${l.name}</div>
-        <div class="pipeline-meta">${l.source}${l.date ? ' · ' + fmtDate(l.date) : ''}</div>
+        <div class="pipeline-name">${l.name}${l._manual ? ' <span style="font-size:9px;color:var(--muted);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:0 4px;">manual</span>' : ''}</div>
+        <div class="pipeline-meta">${l.source}${l.type ? ' · ' + l.type : ''}${l.date ? ' · ' + fmtDate(l.date) : ''}</div>
+        ${l.notes ? `<div class="pipeline-meta" style="font-style:italic;margin-top:2px;">${l.notes.slice(0,60)}${l.notes.length>60?'…':''}</div>` : ''}
       </div>
       <div class="pipeline-right">
         ${l.value ? `<div class="pipeline-value">${fmt$(l.value)}</div>` : ''}
         <div class="pipeline-status">${statusBadge(l.status)}</div>
+        ${l._manual ? `<div style="margin-top:4px;"><span onclick="deleteLead('${l._id}')" style="font-size:10px;color:var(--muted);cursor:pointer;opacity:0.5;" title="Delete">✕</span></div>` : ''}
       </div>
     </div>
   `).join('');
+}
+
+function deleteLead(id) {
+  JARVIS_DATA.deleteManualLead(id);
+  renderAll();
 }
 
 // ── Gigs ──
@@ -1239,12 +1317,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ============================================================
-// API KEY MANAGEMENT (localStorage — never on GitHub)
+// SETTINGS MANAGEMENT (localStorage — never on GitHub)
 // ============================================================
-const KEY_STORAGE = 'jarvis_api_key_v1';
+const KEY_STORAGE   = 'jarvis_api_key_v1';
+const SHEET_STORAGE = 'jarvis_sheet_url_v1';
 
-function saveApiKey() {
-  const key = document.getElementById('key-input').value.trim();
+function saveSettings() {
+  const key   = document.getElementById('key-input').value.trim();
+  const sheet = document.getElementById('sheet-input').value.trim();
+
   if (!key || !key.startsWith('sk-ant-')) {
     document.getElementById('key-input').style.borderColor = 'var(--danger)';
     document.getElementById('key-input').placeholder = 'Must start with sk-ant-...';
@@ -1252,32 +1333,79 @@ function saveApiKey() {
   }
   localStorage.setItem(KEY_STORAGE, key);
   JARVIS_CONFIG.ANTHROPIC_API_KEY = key;
-  document.getElementById('key-modal').classList.remove('active');
-  JARVIS.log('API key saved. JARVIS fully operational.');
-}
 
-function loadApiKey() {
-  const stored = localStorage.getItem(KEY_STORAGE);
-  if (stored) {
-    JARVIS_CONFIG.ANTHROPIC_API_KEY = stored;
-    return true;
+  if (sheet) {
+    localStorage.setItem(SHEET_STORAGE, sheet);
+    JARVIS_CONFIG.GOOGLE_SHEET_CSV_URL = sheet;
   }
-  return false;
+
+  document.getElementById('key-modal').classList.remove('active');
+  JARVIS.log('Settings saved. JARVIS fully operational.' + (sheet ? ' Sheet connected.' : ''));
+  JARVIS_DATA.refresh().then(renderAll);
 }
 
-// Enter key submits modal
+function loadSettings() {
+  const key   = localStorage.getItem(KEY_STORAGE);
+  const sheet = localStorage.getItem(SHEET_STORAGE);
+  if (key)   JARVIS_CONFIG.ANTHROPIC_API_KEY      = key;
+  if (sheet) JARVIS_CONFIG.GOOGLE_SHEET_CSV_URL   = sheet;
+  return !!key;
+}
+
+function openSettings() {
+  const stored = localStorage.getItem(SHEET_STORAGE);
+  if (stored) document.getElementById('sheet-input').value = stored;
+  document.getElementById('key-modal').classList.add('active');
+}
+
+// Enter key submits settings modal
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('key-modal').classList.contains('active')) {
-    saveApiKey();
+    saveSettings();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('key-modal').classList.remove('active');
+    document.getElementById('lead-modal').classList.remove('active');
   }
 });
+
+// ============================================================
+// LEAD MANAGEMENT
+// ============================================================
+function saveNewLead() {
+  const name = document.getElementById('lead-name').value.trim();
+  if (!name) {
+    document.getElementById('lead-name').style.borderColor = 'var(--danger)';
+    return;
+  }
+  const lead = {
+    name,
+    source: document.getElementById('lead-source').value,
+    status: document.getElementById('lead-status').value,
+    type:   document.getElementById('lead-type').value,
+    value:  parseFloat(document.getElementById('lead-value').value) || 0,
+    date:   document.getElementById('lead-date').value,
+    phone:  document.getElementById('lead-phone').value.trim(),
+    email:  document.getElementById('lead-email').value.trim(),
+    notes:  document.getElementById('lead-notes').value.trim(),
+  };
+  JARVIS_DATA.addManualLead(lead);
+  // Reset form
+  ['lead-name','lead-value','lead-date','lead-phone','lead-email','lead-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+    document.getElementById(id).style.borderColor = '';
+  });
+  document.getElementById('lead-modal').classList.remove('active');
+  renderAll();
+  JARVIS.log(`Lead added: ${lead.name} via ${lead.source}`);
+}
 
 // ============================================================
 // BOOT SEQUENCE
 // ============================================================
 window.addEventListener('DOMContentLoaded', async () => {
-  // Load API key from localStorage
-  const hasKey = loadApiKey();
+  // Load settings from localStorage
+  const hasKey = loadSettings();
   if (!hasKey) {
     document.getElementById('key-modal').classList.add('active');
     document.getElementById('key-input').focus();
