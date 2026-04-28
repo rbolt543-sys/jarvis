@@ -89,17 +89,19 @@ const JARVIS_DATA = (() => {
     return _cache;
   }
 
-  // ── Normalisers (flexible column name mapping) ───────────────
+  // ── Normalisers — mapped to your exact JARVIS Data sheet columns ──
+  // Sheet cols: Timestamp | Name | Source | Type | Note | Stage | Raw_Subject
   function _normLeads(rows) {
     return rows.map(r => ({
-      name:    r.name   || r.client_name || r.contact || '',
-      source:  r.source || r.platform    || r.origin  || '',
-      status:  r.status || r.stage       || 'New',
-      date:    r.date   || r.enquiry_date || r.created || '',
+      name:    r.name        || r.client_name  || r.contact     || '',
+      source:  r.source      || r.platform     || r.origin      || '',
+      status:  r.stage       || r.status       || 'New',
+      type:    r.type        || r.event_type   || '',
+      date:    r.timestamp   || r.date         || r.enquiry_date || r.created || '',
       value:   _parseMoney(r.value || r.budget || r.fee || '0'),
-      notes:   r.notes  || r.message     || '',
-      email:   r.email  || '',
-      phone:   r.phone  || r.mobile      || '',
+      notes:   r.note        || r.notes        || r.raw_subject  || r.message || '',
+      email:   r.email       || '',
+      phone:   r.phone       || r.mobile       || '',
     }));
   }
 
