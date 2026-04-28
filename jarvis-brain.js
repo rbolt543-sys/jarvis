@@ -204,25 +204,46 @@ const JARVIS = (() => {
   }
 
   // ── Text-to-Speech ───────────────────────────────────────────
+  // Cache voices once loaded
+  let _voices = [];
+  if (_synth) {
+    _voices = _synth.getVoices();
+    _synth.onvoiceschanged = () => { _voices = _synth.getVoices(); };
+  }
+
+  function _pickVoice() {
+    if (!_voices.length) _voices = _synth.getVoices();
+    // Priority list — closest to Paul Bettany's JARVIS
+    const priority = [
+      v => v.name === 'Daniel',                                      // macOS/iOS British male — best match
+      v => v.name === 'Google UK English Male',                      // Chrome British male
+      v => v.name.includes('Daniel'),
+      v => v.lang === 'en-GB' && v.name.toLowerCase().includes('male'),
+      v => v.name === 'Alex',                                        // macOS fallback
+      v => v.name === 'Fred',
+      v => v.lang === 'en-GB',
+      v => v.lang.startsWith('en') && v.name.toLowerCase().includes('male'),
+      v => v.lang.startsWith('en'),
+    ];
+    for (const test of priority) {
+      const match = _voices.find(test);
+      if (match) return match;
+    }
+    return null;
+  }
+
   function _speak(text, brief = false) {
     if (!_synth) return;
     _synth.cancel();
 
     const clean = text.replace(/[#*`]/g, '').slice(0, brief ? 120 : 800);
     const utt = new SpeechSynthesisUtterance(clean);
-    utt.lang  = JARVIS_CONFIG.VOICE_LANG;
-    utt.rate  = JARVIS_CONFIG.VOICE_RATE;
-    utt.pitch = JARVIS_CONFIG.VOICE_PITCH;
+    utt.lang  = 'en-GB';
+    utt.rate  = brief ? 1.0 : 0.92;   // slightly slower = more authoritative
+    utt.pitch = 0.85;                  // lower pitch = closer to Bettany
 
-    // Prefer a male voice
-    const voices = _synth.getVoices();
-    const preferred = voices.find(v =>
-      (v.lang.startsWith('en') && v.name.toLowerCase().includes('male')) ||
-      v.name.toLowerCase().includes('daniel') ||
-      v.name.toLowerCase().includes('alex') ||
-      v.name.toLowerCase().includes('george')
-    ) || voices.find(v => v.lang.startsWith('en'));
-    if (preferred) utt.voice = preferred;
+    const voice = _pickVoice();
+    if (voice) utt.voice = voice;
 
     utt.onstart = () => { setState('speaking'); _orb?.speak(); };
     utt.onend   = () => { setState('idle');     _orb?.idle(); };
