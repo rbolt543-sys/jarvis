@@ -20,6 +20,12 @@ const JARVIS_CONFIG = {
     students: '2',
   },
 
+  // ElevenLabs — real JARVIS voice
+  // Get key: https://elevenlabs.io/app/settings/api-keys
+  // Find JARVIS voice: elevenlabs.io/app/voice-library (search "JARVIS")
+  ELEVENLABS_API_KEY:  '',
+  ELEVENLABS_VOICE_ID: 'onwK4e9ZLuTAKqWW03F9',
+
   // Anthropic model
   MODEL: 'claude-opus-4-6',
   MAX_TOKENS: 1024,
