@@ -23,7 +23,7 @@ const JARVIS_CONFIG = {
   // ElevenLabs — real JARVIS voice
   // Get key: https://elevenlabs.io/app/settings/api-keys
   // Voice: K8RBkZM3VaxoGBaGvie0 (JARVIS — Paul Bettany style)
-  ELEVENLABS_API_KEY:  '',
+  ELEVENLABS_API_KEY:  'sk_beb1b6a9bcf1d8eaef4641a673e2708cc48adbdfda077c01',
   ELEVENLABS_VOICE_ID: 'K8RBkZM3VaxoGBaGvie0',
 
   // Anthropic model
