@@ -160,11 +160,11 @@ const JARVIS_DATA = (() => {
   }
   function _demoStudents() {
     return [
-      { name: 'Marcus Webb',  status: 'Active',   joined: '2026-03-01', module: 'Module 4 — Reharmonisation', email: '', source: 'Instagram' },
-      { name: 'Diana Chow',   status: 'Active',   joined: '2026-02-15', module: 'Module 6 — Performance',     email: '', source: 'YouTube' },
-      { name: 'Robert Palma', status: 'Stalled',  joined: '2026-01-10', module: 'Module 2 — Chord Voicing',   email: '', source: 'GigSalad referral' },
-      { name: 'Lena Fischer', status: 'Active',   joined: '2026-04-01', module: 'Module 1 — Foundations',     email: '', source: 'Instagram' },
-      { name: 'James Nguyen', status: 'Complete', joined: '2025-12-01', module: 'Complete ✓',                 email: '', source: 'Email list' },
+      { name: 'Carson Eigner',    status: 'Active',       joined: '2025-12-12', module: 'GOB', email: 'carson.eigner@icloud.com',            source: 'GOB' },
+      { name: 'Kristina Gindo',   status: 'Not Enrolled', joined: '2025-12-09', module: 'GOB', email: 'kristina@musictherapyempowerssd.com',  source: 'GOB' },
+      { name: 'Ellen Figueira',   status: 'Active',       joined: '2025-11-28', module: 'GOB', email: 'efig53188@gmail.com',                  source: 'GOB' },
+      { name: 'Carrie Schneider', status: 'Active',       joined: '2025-11-23', module: 'GOB', email: 'schneids30@gmail.com',                 source: 'GOB' },
+      { name: 'Vincent Polkus',   status: 'Active',       joined: '2025-11-23', module: 'GOB', email: 'lschulz630@yahoo.com',                 source: 'GOB' },
     ];
   }
   function _loadDemoData() {
