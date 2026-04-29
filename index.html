@@ -338,6 +338,10 @@
     .badge--active   { background: rgba(0,229,140,0.1); color: var(--success); border: 1px solid rgba(0,229,140,0.25); }
     .badge--stalled  { background: rgba(255,77,77,0.1); color: var(--danger); border: 1px solid rgba(255,77,77,0.25); }
     .badge--complete { background: rgba(107,122,153,0.15); color: var(--muted); border: 1px solid rgba(107,122,153,0.25); }
+    .task-txt  { flex:1; min-width:0; outline:none; background:transparent; border:none; color:inherit; font-size:13px; cursor:text; border-radius:3px; padding:1px 3px; }
+    .task-txt:focus { background:rgba(255,255,255,0.06); }
+    .task-del  { cursor:pointer; color:var(--muted); font-size:18px; line-height:1; padding:0 4px; opacity:0.3; flex-shrink:0; transition:opacity .15s; }
+    .task-del:hover { opacity:1; color:#e74c3c; }
 
     /* ── Gig row ──────────────────────────────────────── */
     .gig-row {
@@ -861,9 +865,9 @@
 
 
 <!-- ── Scripts ────────────────────────────────────────── -->
-<script src="config.js?v=6"></script>
-<script src="data.js?v=6"></script>
-<script src="jarvis-brain.js?v=6"></script>
+<script src="config.js?v=7"></script>
+<script src="data.js?v=7"></script>
+<script src="jarvis-brain.js?v=7"></script>
 
 <script>
 // ============================================================
@@ -1188,23 +1192,33 @@ function renderAll() {
 // ============================================================
 // TASKS (localStorage)
 // ============================================================
-const TASKS_KEY = 'jarvis_tasks_v1';
+const TASKS_KEY = 'jarvis_tasks_v2';
 const DEFAULT_TASKS = {
-  gig:   [
-    { id: 1, text: 'Follow up on Grand Hyatt enquiry', done: false, priority: 'high' },
-    { id: 2, text: 'Send deposit invoice — Harrison Wedding', done: false, priority: 'high' },
-    { id: 3, text: 'Book hotel for Rialto Tribute Show', done: false, priority: 'med' },
+  gig: [
+    { id:1, text:'Chase deposit — Glitter & Be Gay Tribute (5/16, $4,000)', done:false, priority:'high' },
+    { id:2, text:'Chase deposit — Sean\'s Wedding Extravaganza (6/6, $5,950)', done:false, priority:'high' },
+    { id:3, text:'Chase deposit — Trek 50th Anniversary (6/20, $4,100)', done:false, priority:'high' },
+    { id:4, text:'Close Grand Hyatt Chicago — NYE residency, send contract ($4,200)', done:false, priority:'high' },
+    { id:5, text:'Follow up: Sarah & Tom Mitchell — Elton tribute ($2,800)', done:false, priority:'high' },
+    { id:6, text:'Chase deposit — Abby & Giovanni Wedding (6/20, $2,882)', done:false, priority:'med' },
+    { id:7, text:'Chase deposit — Kayley & Sean Beach Wedding (6/13, $1,695)', done:false, priority:'med' },
+    { id:8, text:'Send follow-up quote — Parkview Corp Events ($3,500)', done:false, priority:'med' },
   ],
-  gob:   [
-    { id: 4, text: 'Record Module 5 walkthrough video', done: false, priority: 'high' },
-    { id: 5, text: 'Email stalled students (Robert Palma)', done: false, priority: 'med' },
+  gob: [
+    { id:1, text:'Convert Kristina Gindo — signed up but not enrolled in GOB', done:false, priority:'high' },
+    { id:2, text:'Convert Jessica Reynolds — Instagram lead, interested in GOB', done:false, priority:'high' },
+    { id:3, text:'Check in with all 4 active GOB students this week', done:false, priority:'med' },
+    { id:4, text:'Post GOB content to Instagram — target new enrollment', done:false, priority:'med' },
+    { id:5, text:'Review MemberVault — student progress & completion rates', done:false, priority:'low' },
   ],
   admin: [
-    { id: 6, text: 'Connect Google Sheet CSV URL in config.js', done: false, priority: 'high' },
-    { id: 7, text: 'Set up Make.com → JARVIS webhook', done: false, priority: 'med' },
+    { id:1, text:'Set up Gmail forward: GigSalad leads → info@rorybolton.com', done:false, priority:'high' },
+    { id:2, text:'Confirm logistics — Glitter & Be Gay (5/16, OPE! Brewing Co.)', done:false, priority:'high' },
+    { id:3, text:'Confirm logistics — Celebration of Life Roger Bjerke (5/5)', done:false, priority:'high' },
+    { id:4, text:'Update BookLive profile + 2026 pricing', done:false, priority:'med' },
+    { id:5, text:'Invoice balance — Kayley & Sean ($1,695 outstanding)', done:false, priority:'med' },
   ],
 };
-
 function loadTasks() {
   try { return JSON.parse(localStorage.getItem(TASKS_KEY)) || DEFAULT_TASKS; }
   catch(_) { return DEFAULT_TASKS; }
@@ -1215,16 +1229,32 @@ let _tasks = loadTasks();
 let _activeTab = 'gig';
 
 function renderTasks() {
-  ['gig', 'gob', 'admin'].forEach(cat => {
-    const el = document.getElementById(`tasks-${cat}`);
-    el.innerHTML = (_tasks[cat] || []).map(t => `
-      <div class="task-item">
-        <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask('${cat}',${t.id})"></div>
-        <div class="task-text ${t.done ? 'done' : ''}">${t.text}</div>
-        <span class="task-priority badge badge--${t.priority === 'high' ? 'hot' : t.priority === 'med' ? 'warm' : 'new'}">${t.priority || ''}</span>
-      </div>
-    `).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px 0;">All clear ✓</div>';
+  ['gig','gob','admin'].forEach(cat => {
+    const el = document.getElementById('tasks-'+cat);
+    el.innerHTML = (_tasks[cat]||[]).map(t =>
+      '<div class="task-item'+(t.done?' done':'')+'">' +
+      '<span class="task-cb" onclick="toggleTask(\''+cat+'\','+t.id+')">'+
+      '<span class="material-icons" style="font-size:15px;cursor:pointer">'+(t.done?'check_circle':'radio_button_unchecked')+'</span></span>'+
+      '<span class="task-txt" contenteditable="true" '+
+      'onblur="editTask(\''+cat+'\','+t.id+',this)" '+
+      'onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur()}">'+t.text+'</span>'+
+      '<span class="badge badge--'+t.priority+'">'+t.priority+'</span>'+
+      '<span class="task-del" onclick="deleteTask(\''+cat+'\','+t.id+')">×</span>'+
+      '</div>'
+    ).join('');
   });
+}
+
+function editTask(cat, id, el) {
+  const txt = el.innerText.trim();
+  if(!txt){ el.innerText = (_tasks[cat]||[]).find(t=>t.id===id)?.text||''; return; }
+  _tasks[cat] = (_tasks[cat]||[]).map(t => t.id===id ? {...t, text:txt} : t);
+  saveTasks();
+}
+
+function deleteTask(cat, id) {
+  _tasks[cat] = (_tasks[cat]||[]).filter(t => t.id!==id);
+  saveTasks(); renderTasks();
 }
 
 function toggleTask(cat, id) {
