@@ -11,7 +11,7 @@ const JARVIS_CONFIG = {
 
   // 2. PASTE YOUR GOOGLE SHEET CSV EXPORT URL BELOW
   //    File → Share → Publish to Web → CSV → copy URL
-  GOOGLE_SHEET_CSV_URL: '',
+  GOOGLE_SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/1lzqEWFxvaqp9w6_vH-pURYwM0J3-Uhvx4EzCeG-wWJA/edit',
 
   // Sheet tab GIDs (0 = first tab, change if your tabs differ)
   SHEET_TABS: {
