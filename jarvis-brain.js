@@ -79,9 +79,8 @@ const JARVIS = (() => {
     };
 
     _recognition.onend = () => {
-      // Auto-restart if we're still supposed to be on
-      if (_wakeDetecting) {
-        setTimeout(() => { try { _recognition.start(); } catch(_){} }, 300);
+      if (_wakeDetecting && _state !== 'speaking' && _state !== 'thinking') {
+        setTimeout(() => { try { _recognition.start(); } catch(_){} }, 400);
       }
     };
   }
@@ -233,33 +232,66 @@ const JARVIS = (() => {
     return null;
   }
 
-  function _speak(text, brief = false) {
+  let _resumeTimer = null;
+  let _activeAudio  = null;
+
+  function _afterSpeak() {
+    setState('idle'); _orb?.idle();
+    if (_wakeDetecting) setTimeout(function(){ try{ _recognition?.start(); }catch(_){} }, 500);
+  }
+
+  async function _speakElevenLabs(text, brief) {
+    var key = JARVIS_CONFIG.ELEVENLABS_API_KEY;
+    var vid = JARVIS_CONFIG.ELEVENLABS_VOICE_ID || 'onwK4e9ZLuTAKqWW03F9';
+    var clean = text.replace(/[#`*]/g,'').slice(0, brief?150:1000);
+    setState('speaking'); _orb?.speak();
+    try { _recognition?.stop(); } catch(_){}
+    try {
+      var res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+vid+'/stream',{
+        method:'POST', headers:{'xi-api-key':key,'Content-Type':'application/json'},
+        body:JSON.stringify({text:clean,model_id:'eleven_turbo_v2_5',
+          voice_settings:{stability:0.45,similarity_boost:0.82,style:0.15,use_speaker_boost:true}})
+      });
+      if (!res.ok) throw new Error('EL '+res.status);
+      var blob = await res.blob();
+      var url = URL.createObjectURL(blob);
+      if (_activeAudio){ _activeAudio.pause(); URL.revokeObjectURL(_activeAudio.src); }
+      _activeAudio = new Audio(url);
+      _activeAudio.onended = function(){ URL.revokeObjectURL(url); _afterSpeak(); };
+      _activeAudio.onerror = function(){ URL.revokeObjectURL(url); _afterSpeak(); };
+      _activeAudio.play();
+    } catch(err){
+      console.warn('ElevenLabs failed, fallback:',err.message);
+      _speakWebSpeech(text, brief);
+    }
+  }
+
+  function _speakWebSpeech(text, brief) {
     if (!_synth) return;
-    _synth.cancel();
-
-    const clean = text.replace(/[#*`]/g, '').slice(0, brief ? 120 : 800);
-    const utt = new SpeechSynthesisUtterance(clean);
-    utt.lang  = 'en-GB';
-    utt.rate  = brief ? 1.05 : 0.97;  // crisp, not too slow
-    utt.pitch = 1.18;                  // higher pitch — Paul Bettany JARVIS register
-
-    const voice = _pickVoice();
-    if (voice) utt.voice = voice;
-
-    utt.onstart = () => { setState('speaking'); _orb?.speak(); };
-    utt.onend   = () => { setState('idle');     _orb?.idle(); };
-    utt.onerror = () => { setState('idle');     _orb?.idle(); };
-
-    _activeUtterance = utt;
-    _synth.speak(utt);
-
+    _synth.cancel(); clearInterval(_resumeTimer);
+    try { _recognition?.stop(); } catch(_){}
+    var clean = text.replace(/[#`*]/g,'').slice(0,brief?120:800);
+    var utt = new SpeechSynthesisUtterance(clean);
+    utt.lang='en-GB'; utt.rate=brief?1.05:0.97; utt.pitch=1.18;
+    var voice=_pickVoice(); if(voice) utt.voice=voice;
+    utt.onstart=function(){ setState('speaking'); _orb?.speak();
+      _resumeTimer=setInterval(function(){ if(_synth.speaking) _synth.resume(); },10000); };
+    utt.onend=function(){ clearInterval(_resumeTimer); _afterSpeak(); };
+    utt.onerror=function(){ clearInterval(_resumeTimer); _afterSpeak(); };
+    _activeUtterance=utt; _synth.speak(utt);
     if (!brief) setState('speaking');
   }
 
+  function _speak(text, brief) {
+    if(brief===undefined) brief=false;
+    var k = JARVIS_CONFIG.ELEVENLABS_API_KEY;
+    if (k && k.length>10){ _speakElevenLabs(text,brief); } else { _speakWebSpeech(text,brief); }
+  }
+
   function stopSpeaking() {
-    _synth?.cancel();
-    setState('idle');
-    _orb?.idle();
+    _synth?.cancel(); clearInterval(_resumeTimer);
+    if (_activeAudio){ _activeAudio.pause(); _activeAudio=null; }
+    setState('idle'); _orb?.idle();
   }
 
   // ── State machine ────────────────────────────────────────────
