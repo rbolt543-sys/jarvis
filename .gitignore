@@ -1,7 +1,10 @@
-# Keep token out of GitHub
+# Keep secrets out of GitHub
 deploy.sh
 .env
 *.env
+config.local.js
+config.*.local.js
+secrets.js
 
 # OS
 .DS_Store

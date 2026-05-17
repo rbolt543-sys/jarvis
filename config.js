@@ -1,7 +1,18 @@
 // ============================================================
-// JARVIS CONFIG — Add your API key and Sheet URL here
-// ⚠️  This file is public on GitHub Pages.
-//     For production, route through a server-side proxy.
+// JARVIS CONFIG
+// ============================================================
+// ⚠️  DO NOT COMMIT REAL API KEYS TO THIS FILE.
+// This file is public on GitHub Pages and any key pasted here
+// will be scraped within minutes (GitGuardian flagged a leak
+// from this exact file once already).
+//
+// Safe options for keys, in order of preference:
+//   1. Wait for v2 desktop app (PRD.md) — keys in macOS Keychain.
+//   2. Server-side proxy (Cloudflare Worker / Vercel function)
+//      that holds the keys and the browser calls the proxy.
+//   3. Local-only: open this dashboard from your laptop instead
+//      of publishing to GitHub Pages, and use config.local.js
+//      (gitignored) for your real keys.
 // ============================================================
 
 const JARVIS_CONFIG = {
@@ -23,7 +34,9 @@ const JARVIS_CONFIG = {
   // ElevenLabs — real JARVIS voice
   // Get key: https://elevenlabs.io/app/settings/api-keys
   // Voice: K8RBkZM3VaxoGBaGvie0 (JARVIS — Paul Bettany style)
-  ELEVENLABS_API_KEY:  'sk_beb1b6a9bcf1d8eaef4641a673e2708cc48adbdfda077c01',
+  // ⚠️  Previous key here was leaked publicly and has been revoked.
+  //     Do NOT paste the new key into this file if you plan to push.
+  ELEVENLABS_API_KEY:  'sk_YOUR_ELEVENLABS_KEY_HERE',
   ELEVENLABS_VOICE_ID: 'K8RBkZM3VaxoGBaGvie0',
 
   // Anthropic model

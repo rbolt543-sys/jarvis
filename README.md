@@ -8,16 +8,21 @@ Voice-activated AI dashboard for Rory Bolton. Manages leads, gigs, revenue, GOB 
 
 ## Setup (3 steps)
 
-### 1. Add your Anthropic API Key
+### 1. Add your API keys — safely
 
-Open `config.js` and replace `sk-ant-YOUR_KEY_HERE` with your real key:
-
-```js
-ANTHROPIC_API_KEY: 'sk-ant-api03-...',
-```
-
-> ⚠️ This file is public on GitHub Pages. Your key will be visible in source.
-> For team use, route through a server-side proxy instead.
+> ⚠️ **Do NOT paste real keys into `config.js` and commit them.**
+> This repo is public and GitHub Pages serves `config.js` to every visitor.
+> A previous ElevenLabs key committed here was leaked publicly (GitGuardian alert
+> May 16 2026) within minutes and had to be revoked. See `config.js` for current
+> guidance.
+>
+> Until a proxy or the v2 desktop app (`PRD.md`) is in place, the safest local
+> workflow is:
+>
+> 1. Copy `config.js` to `config.local.js` (already in `.gitignore`).
+> 2. Put your real keys in `config.local.js`.
+> 3. Load `config.local.js` instead of `config.js` when running locally, or
+>    edit `config.js` only on your machine and **never** `git add` it.
 
 ---
 
